@@ -37,7 +37,7 @@ Route::controller(CatalogController::class)->group(function () {
 // Cart Routes
 Route::prefix('cart')->name('cart.')->controller(CartController::class)->group(function () {
 
-    Route::get('/cart', function () {
+    Route::get('/', function () {
         return Inertia::render('CartPage');
     })->name('index');
 
