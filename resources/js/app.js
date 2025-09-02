@@ -4,11 +4,11 @@ import '../css/app.css'
 import { createApp, h , ref, computed} from 'vue'
 import { createInertiaApp, Link, router, usePage } from '@inertiajs/vue3'
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers'
-import DefaultLayout from './Layouts/DefaultLayout.vue'
-import {route} from 'ziggy-js'
+import GuestLayout from './Layouts/GuestLayout.vue'
 import { Ziggy } from './ziggy'
 export { Ziggy };
 import { ZiggyVue } from 'ziggy-js';
+import {route} from 'ziggy-js'
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel'
 
@@ -20,9 +20,9 @@ createInertiaApp({
       import.meta.glob('./Pages/**/*.vue')
     )
 
-    // If page doesn’t already define a layout, apply DefaultLayout
+    // If page doesn’t already define a layout, apply GuestLayout
     return page.then((module) => {
-      module.default.layout ??= DefaultLayout
+      module.default.layout ??= GuestLayout
       return module
     })
   },

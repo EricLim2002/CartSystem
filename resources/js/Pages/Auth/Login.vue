@@ -1,4 +1,5 @@
 <script setup>
+
 import Checkbox from '@/Components/Checkbox.vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import InputError from '@/Components/InputError.vue';
@@ -6,6 +7,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import {route} from 'ziggy-js'
 
 defineProps({
     canResetPassword: {
@@ -30,7 +32,8 @@ const submit = () => {
 </script>
 
 <template>
-  <GuestLayout>
+
+
     <Head title="Log in" />
 
     <!-- Status message -->
@@ -79,7 +82,7 @@ const submit = () => {
         <Link
           v-if="canResetPassword"
           :href="route('password.request')"
-          class="text-decoration-underline text-muted"
+          class="text-decoration-underline text-muted me-2"
         >
           Forgot your password?
         </Link>
@@ -93,5 +96,5 @@ const submit = () => {
         </PrimaryButton>
       </div>
     </form>
-  </GuestLayout>
+
 </template>

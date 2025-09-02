@@ -10,6 +10,11 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
+    protected $listen = [
+        Login::class => [
+            MergeSessionCartIntoUser::class,
+        ],
+    ];
     public function register(): void
     {
         //

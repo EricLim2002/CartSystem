@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
-<head class="mb-5">
+<head >
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -17,11 +17,11 @@
   @inertiaHead
 </head>
 
-<body class="font-sans antialiased mt-5">
-  <div class="mt-5">
+<body class="font-sans antialiased">
+  <div >
     @inertia
   </div>
-  @routes
+  @routes(['only' => null])
 </body>
 
 </html>

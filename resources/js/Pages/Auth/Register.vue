@@ -22,7 +22,6 @@ const submit = () => {
 </script>
 
 <template>
-    <GuestLayout>
         <Head title="Register" />
 
         <form @submit.prevent="submit" class="mt-3">
@@ -98,7 +97,7 @@ const submit = () => {
             <div class="d-flex justify-content-between align-items-center mt-4">
                 <Link
                     :href="route('login')"
-                    class="text-decoration-underline small text-muted"
+                    class="text-decoration-underline small text-muted me-2"
                 >
                     Already registered?
                 </Link>
@@ -112,5 +111,5 @@ const submit = () => {
                 </PrimaryButton>
             </div>
         </form>
-    </GuestLayout>
+
 </template>

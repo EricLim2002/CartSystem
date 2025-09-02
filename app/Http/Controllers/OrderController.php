@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use Inertia\Inertia;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -13,7 +14,7 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $cart = session('cart');
-        if (! $cart || empty($cart['items'])) {
+        if (!$cart || empty($cart['items'])) {
             return response()->json(['message' => 'Cart is empty'], 422);
         }
 
@@ -61,14 +62,20 @@ class OrderController extends Controller
         // $orders = Order::with('items')->where('user_id', auth()->id())->latest()->paginate(20);
 
         // For admin view:
-        $orders = Order::with('items')->latest()->paginate(20);
-        return view('orders', compact('orders'));
+        $orders = Order::where('user_id', auth()->id())->with('items')->latest()->paginate(20);
+        return Inertia::render('Orders', [
+            'orders' => $orders,
+        ]);
     }
 
     public function updateStatus(Request $request, Order $order)
     {
-        $request->validate(['status' => 'required|in:pending,processing,shipped,completed,cancelled']);
+        $request->validate(['status' => 'required|in:pending,completed,cancelled']);
         $order->update(['status' => $request->status]);
-        return back()->with('success', 'Order status updated');
+        return response()->json([
+            'success' => true,
+            'status' => $order->status,
+        ]);
+
     }
 }
