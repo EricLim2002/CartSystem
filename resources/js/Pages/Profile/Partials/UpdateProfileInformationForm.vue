@@ -23,90 +23,76 @@ const form = useForm({
 </script>
 
 <template>
-    <section>
-        <header>
-            <h2 class="text-lg font-medium text-gray-900">
-                Profile Information
-            </h2>
+  <section>
+    <header class="mb-3">
+      <h2 class="h5">Profile Information</h2>
+      <p class="text-muted small">
+        Update your account's profile information and email address.
+      </p>
+    </header>
 
-            <p class="mt-1 text-sm text-gray-600">
-                Update your account's profile information and email address.
-            </p>
-        </header>
+    <form @submit.prevent="form.patch(route('profile.update'))" class="mb-3">
+      <!-- Name -->
+      <div class="mb-3">
+        <InputLabel for="name" value="Name" class="form-label" />
+        <TextInput
+          id="name"
+          type="text"
+          class="form-control"
+          v-model="form.name"
+          required
+          autofocus
+          autocomplete="name"
+        />
+        <InputError class="form-text text-danger mt-1" :message="form.errors.name" />
+      </div>
 
-        <form
-            @submit.prevent="form.patch(route('profile.update'))"
-            class="mt-6 space-y-6"
+      <!-- Email -->
+      <div class="mb-3">
+        <InputLabel for="email" value="Email" class="form-label" />
+        <TextInput
+          id="email"
+          type="email"
+          class="form-control"
+          v-model="form.email"
+          required
+          autocomplete="username"
+        />
+        <InputError class="form-text text-danger mt-1" :message="form.errors.email" />
+      </div>
+
+      <!-- Email Verification -->
+      <div v-if="mustVerifyEmail && user.email_verified_at === null" class="mb-3">
+        <p class="text-muted small">
+          Your email address is unverified.
+          <Link
+            :href="route('verification.send')"
+            method="post"
+            as="button"
+            class="btn btn-link p-0 text-decoration-underline"
+          >
+            Click here to re-send the verification email.
+          </Link>
+        </p>
+
+        <div v-show="status === 'verification-link-sent'" class="text-success small mt-1">
+          A new verification link has been sent to your email address.
+        </div>
+      </div>
+
+      <!-- Save Button & Success Message -->
+      <div class="d-flex align-items-center gap-2">
+        <PrimaryButton class="btn btn-primary" :disabled="form.processing">Save</PrimaryButton>
+
+        <Transition
+          enter-active-class="transition-opacity duration-200"
+          enter-from-class="opacity-0"
+          leave-active-class="transition-opacity duration-200"
+          leave-to-class="opacity-0"
         >
-            <div>
-                <InputLabel for="name" value="Name" />
-
-                <TextInput
-                    id="name"
-                    type="text"
-                    class="mt-1 block w-full"
-                    v-model="form.name"
-                    required
-                    autofocus
-                    autocomplete="name"
-                />
-
-                <InputError class="mt-2" :message="form.errors.name" />
-            </div>
-
-            <div>
-                <InputLabel for="email" value="Email" />
-
-                <TextInput
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    v-model="form.email"
-                    required
-                    autocomplete="username"
-                />
-
-                <InputError class="mt-2" :message="form.errors.email" />
-            </div>
-
-            <div v-if="mustVerifyEmail && user.email_verified_at === null">
-                <p class="mt-2 text-sm text-gray-800">
-                    Your email address is unverified.
-                    <Link
-                        :href="route('verification.send')"
-                        method="post"
-                        as="button"
-                        class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    >
-                        Click here to re-send the verification email.
-                    </Link>
-                </p>
-
-                <div
-                    v-show="status === 'verification-link-sent'"
-                    class="mt-2 text-sm font-medium text-green-600"
-                >
-                    A new verification link has been sent to your email address.
-                </div>
-            </div>
-
-            <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Save</PrimaryButton>
-
-                <Transition
-                    enter-active-class="transition ease-in-out"
-                    enter-from-class="opacity-0"
-                    leave-active-class="transition ease-in-out"
-                    leave-to-class="opacity-0"
-                >
-                    <p
-                        v-if="form.recentlySuccessful"
-                        class="text-sm text-gray-600"
-                    >
-                        Saved.
-                    </p>
-                </Transition>
-            </div>
-        </form>
-    </section>
+          <p v-if="form.recentlySuccessful" class="text-muted small mb-0">Saved.</p>
+        </Transition>
+      </div>
+    </form>
+  </section>
 </template>

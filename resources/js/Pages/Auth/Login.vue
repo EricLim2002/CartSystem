@@ -30,71 +30,68 @@ const submit = () => {
 </script>
 
 <template>
-    <GuestLayout>
-        <Head title="Log in" />
+  <GuestLayout>
+    <Head title="Log in" />
 
-        <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
-            {{ status }}
-        </div>
+    <!-- Status message -->
+    <div v-if="status" class="mb-3 text-success">
+      {{ status }}
+    </div>
 
-        <form @submit.prevent="submit">
-            <div>
-                <InputLabel for="email" value="Email" />
+    <form @submit.prevent="submit">
+      <!-- Email -->
+      <div class="mb-3">
+        <InputLabel for="email" value="Email" class="form-label" />
+        <TextInput
+          id="email"
+          type="email"
+          class="form-control"
+          v-model="form.email"
+          required
+          autofocus
+          autocomplete="username"
+        />
+        <InputError class="form-text text-danger mt-1" :message="form.errors.email" />
+      </div>
 
-                <TextInput
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    v-model="form.email"
-                    required
-                    autofocus
-                    autocomplete="username"
-                />
+      <!-- Password -->
+      <div class="mb-3">
+        <InputLabel for="password" value="Password" class="form-label" />
+        <TextInput
+          id="password"
+          type="password"
+          class="form-control"
+          v-model="form.password"
+          required
+          autocomplete="current-password"
+        />
+        <InputError class="form-text text-danger mt-1" :message="form.errors.password" />
+      </div>
 
-                <InputError class="mt-2" :message="form.errors.email" />
-            </div>
+      <!-- Remember Me -->
+      <div class="mb-3 form-check">
+        <Checkbox name="remember" v-model:checked="form.remember" class="form-check-input" />
+        <label class="form-check-label">Remember me</label>
+      </div>
 
-            <div class="mt-4">
-                <InputLabel for="password" value="Password" />
+      <!-- Forgot Password & Submit -->
+      <div class="d-flex justify-content-between align-items-center">
+        <Link
+          v-if="canResetPassword"
+          :href="route('password.request')"
+          class="text-decoration-underline text-muted"
+        >
+          Forgot your password?
+        </Link>
 
-                <TextInput
-                    id="password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password"
-                    required
-                    autocomplete="current-password"
-                />
-
-                <InputError class="mt-2" :message="form.errors.password" />
-            </div>
-
-            <div class="mt-4 block">
-                <label class="flex items-center">
-                    <Checkbox name="remember" v-model:checked="form.remember" />
-                    <span class="ms-2 text-sm text-gray-600"
-                        >Remember me</span
-                    >
-                </label>
-            </div>
-
-            <div class="mt-4 flex items-center justify-end">
-                <Link
-                    v-if="canResetPassword"
-                    :href="route('password.request')"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                    Forgot your password?
-                </Link>
-
-                <PrimaryButton
-                    class="ms-4"
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
-                >
-                    Log in
-                </PrimaryButton>
-            </div>
-        </form>
-    </GuestLayout>
+        <PrimaryButton
+          class="btn btn-primary"
+          :class="{ 'disabled': form.processing }"
+          :disabled="form.processing"
+        >
+          Log in
+        </PrimaryButton>
+      </div>
+    </form>
+  </GuestLayout>
 </template>

@@ -4,7 +4,7 @@
     <HeaderBar />
 
     <!-- Main Page Content -->
-    <main class="p-4 justify-content-center align-items-center text-center mb-4 d-flex">
+    <main class="p-4 ">
       <slot />
     </main>
   </div>

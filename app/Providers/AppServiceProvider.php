@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,10 +21,5 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
-
-        View::composer('*', function ($view) {
-            $cart = session('cart', ['items' => [], 'count' => 0, 'total' => 0]);
-            $view->with('cartCount', $cart['count']);
-        });
     }
 }

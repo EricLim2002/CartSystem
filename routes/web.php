@@ -5,7 +5,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
-use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 //
 // Public routes (no auth required)
@@ -38,7 +38,10 @@ Route::get('/register', function () {
 })->name('register');
 
 
-//
+Route::get('/dashboard', function () {
+    return Inertia::render('Dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
 // Authenticated user routes
 //
 Route::middleware('auth')->name('user.')->group(function () {
@@ -50,7 +53,11 @@ Route::middleware('auth')->name('user.')->group(function () {
         ->name('logout');
 
     // Dashboard
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard'); // resources/js/Pages/Dashboard.vue
-    })->name('dashboard');
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    
+
 });
