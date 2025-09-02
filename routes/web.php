@@ -1,75 +1,56 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-
-use App\Http\Controllers\CatalogController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\CartController;
-
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+//
+// Public routes (no auth required)
+//
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+
+// Product catalogue
+Route::get('/', [ProductController::class, 'index'])->name('catalogue');
+Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+
+// Cart endpoints (AJAX-friendly, Inertia page handled in Vue)
+Route::prefix('cart')->name('cart.')->group(function () {
+    Route::get('/', [CartController::class, 'show'])->name('show');
+    Route::post('/add', [CartController::class, 'add'])->name('add');
+    Route::post('/update', [CartController::class, 'update'])->name('update');
+    Route::post('/clear', [CartController::class, 'clear'])->name('clear');
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Checkout
+Route::post('/checkout', [OrderController::class, 'store'])->name('checkout');
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+// Login page (Inertia Vue page instead of placeholder)
+Route::get('/login', function () {
+    return Inertia::render('Auth/Login'); // resources/js/Pages/Auth/Login.vue
+})->name('login');
+
+
+Route::get('/register', function () {
+    return Inertia::render('Auth/Register'); // resources/js/Pages/Auth/Register.vue
+})->name('register');
+
+
+//
+// Authenticated user routes
+//
+Route::middleware('auth')->name('user.')->group(function () {
+    // Orders
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::post('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
+
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
+        ->name('logout');
+
+    // Dashboard
+    Route::get('/dashboard', function () {
+        return Inertia::render('Dashboard'); // resources/js/Pages/Dashboard.vue
+    })->name('dashboard');
 });
-
-Route::controller(CatalogController::class)->group(function () {
-    Route::get('/', 'index')->name('catalog.index');
-    Route::get('/products/{product}', 'show')->name('catalog.show');
-});
-
-// Cart Routes
-Route::prefix('cart')->name('cart.')->controller(CartController::class)->group(function () {
-
-    Route::get('/', function () {
-        return Inertia::render('CartPage');
-    })->name('index');
-
-    Route::post('/add/{id}', 'add')->name('add');
-    Route::post('/update/{id}', 'update')->name('update');
-    Route::post('/remove/{id}', 'remove')->name('remove');
-    Route::post('/place-order', 'placeOrder')->name('placeOrder');
-
-    Route::get('/count', function () {
-        $cart = session()->get('cart', []);
-        return response()->json(['count' => collect($cart)->sum('qty')]);
-    });
-
-    Route::get('/data', function () {
-        $cart = session()->get('cart', []);
-        return response()->json([
-            'cart' => array_map(function ($item) {
-                $item['subtotal'] = $item['price'] * $item['qty'];
-                return $item;
-            }, $cart),
-        ]);
-    });
-
-
-});
-
-// Order Routes
-Route::prefix('orders')->name('orders.')->controller(OrderController::class)->group(function () {
-    Route::get('/', 'index')->name('index');
-    Route::get('/{order}', 'show')->name('show');
-    Route::post('/{order}/status', 'updateStatus')->name('updateStatus');
-});
-
-
-require __DIR__ . '/auth.php';
