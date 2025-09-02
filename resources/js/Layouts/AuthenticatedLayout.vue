@@ -5,58 +5,74 @@
             <div class="container">
                 <!-- Logo / Brand -->
                 <Link :href="route('catalogue')" class="brand">
-                {{ appName }}
+                    {{ appName }}
                 </Link>
 
                 <!-- Search (only on Catalogue page) -->
                 <form v-if="$page.component === 'Catalogue'" class="search" @submit.prevent="onSearch">
                     <input type="search" v-model="q" placeholder="Search products..." aria-label="Search" />
                 </form>
-
-                <slot v-if="$page.component !== 'Catalogue'" name="header" />
+                
+                  <slot v-if="$page.component !== 'Catalogue'" name="header" />
 
                 <!-- Right side -->
-                <nav class="right">
-                    <!-- Cart -->
-                    <Link :href="route('cart.show')" class="cart me-1" aria-label="Cart">
-                    🛒
-                    <span v-if="cartCount > 0" class="badge">{{ cartCount }}</span>
-                    </Link>
+<nav class="right">
+    <!-- Cart -->
+    <Link :href="route('cart.show')" class="cart" aria-label="Cart">
+        🛒
+        <span v-if="cartCount > 0" class="badge bg-danger">{{ cartCount }}</span>
+    </Link>
 
-                    <!-- Auth -->
-                    <template v-if="!auth">
-                        <Link :href="route('login')">Login</Link>
-                        <Link :href="route('register')">Register</Link>
-                    </template>
-                    <template v-else>
-                            <ul class="navbar-nav ms-auto">
-                                <li class="nav-item dropdown">
-                                    <Dropdown width="48">
-                                        <template #trigger>
-                                            <button type="button" class="btn btn-link nav-link p-0">
-                                                {{ auth.name }}
-                                            </button>
-                                        </template>
+    <!-- Auth -->
+    <template v-if="!auth">
+        <Link :href="route('login')" class="btn btn-link">Login</Link>
+        <Link :href="route('register')" class="btn btn-link">Register</Link>
+    </template>
 
-                                        <template #content>
-                                            <DropdownLink :href="route('profile.edit')">Profile</DropdownLink>
-                                            <DropdownLink :href="route('orders.index')">Orders</DropdownLink>
-                                            <DropdownLink :href="route('logout')" method="post" as="button">
-                                                Log Out
-                                            </DropdownLink>
-                                        </template>
-                                    </Dropdown>
-                                </li>
-                            </ul>
-                    </template>
-                </nav>
+    <template v-else>
+        <ul class="navbar-nav">
+            <li class="nav-item dropdown">
+                <!-- Bootstrap Dropdown -->
+                <button
+                    class="btn btn-link nav-link dropdown-toggle p-0"
+                    type="button"
+                    id="userDropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                >
+                    {{ auth.name }}
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                    <li>
+                        <DropdownLink :href="route('profile.edit')" class="dropdown-item">
+                            Profile
+                        </DropdownLink>
+                    </li>
+                    <li>
+                        <DropdownLink :href="route('orders.index')" class="dropdown-item">
+                            Orders
+                        </DropdownLink>
+                    </li>
+                    <li>
+                        <DropdownLink :href="route('logout')" method="post" as="button" class="dropdown-item">
+                            Log Out
+                        </DropdownLink>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </template>
+</nav>
             </div>
         </header>
 
         <!-- Main content -->
-        <main :class="$page.component === 'Catalogue'
-            ? 'p-4 pt-20 main-content d-flex flex-column min-vh-100 mt-5'
-            : 'main-content pt-20 align-items-center justify-content-center d-flex flex-column min-vh-100'">
+        <main
+            :class="$page.component === 'Catalogue'
+                ? 'p-4 pt-20 main-content d-flex flex-column min-vh-100 mt-5' 
+                : 'main-content pt-20 align-items-center justify-content-center d-flex flex-column min-vh-100'"
+        >
             <slot />
         </main>
     </div>
@@ -139,24 +155,19 @@ function onSearch() {
 .main-content {
     padding-top: 64px;
 }
-
 .nav-item.dropdown {
-    position: relative;
-    /* anchor point for absolute dropdown */
+  position: relative; /* anchor point for absolute dropdown */
 }
 
 .nav-item.dropdown .dropdown-panel {
-    position: absolute;
-    /* instead of absolute */
-    top: 64px;
-    /* height of your fixed header */
-    right: 16px;
-    /* align with header padding */
-    min-width: 160px;
-    border-radius: 8px;
-    border: 1px solid #e6e6e6;
-    background: #fff;
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
-    z-index: 3000;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 160px;
+  border-radius: 8px;
+  border: 1px solid #e6e6e6;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  z-index:3000;
 }
 </style>

@@ -16,40 +16,54 @@
                   <slot v-if="$page.component !== 'Catalogue'" name="header" />
 
                 <!-- Right side -->
-                <nav class="right">
-                    <!-- Cart -->
-                    <Link :href="route('cart.show')" class="cart" aria-label="Cart">
-                        🛒
-                        <span v-if="cartCount > 0" class="badge">{{ cartCount }}</span>
-                    </Link>
+<nav class="right">
+    <!-- Cart -->
+    <Link :href="route('cart.show')" class="cart" aria-label="Cart">
+        🛒
+        <span v-if="cartCount > 0" class="badge bg-danger">{{ cartCount }}</span>
+    </Link>
 
-                    <!-- Auth -->
-                    <template v-if="!auth">
-                        <Link :href="route('login')">Login</Link>
-                        <Link :href="route('register')">Register</Link>
-                    </template>
-                    <template v-else>
-                        <ul class="navbar-nav ms-auto">
-                            <li class="nav-item dropdown">
-                                <Dropdown width="48">
-                                    <template #trigger>
-                                        <button type="button" class="btn btn-link nav-link p-0">
-                                            {{ auth.name }}
-                                        </button>
-                                    </template>
+    <!-- Auth -->
+    <template v-if="!auth">
+        <Link :href="route('login')" class="btn btn-link">Login</Link>
+        <Link :href="route('register')" class="btn btn-link">Register</Link>
+    </template>
 
-                                    <template #content>
-                                        <DropdownLink :href="route('profile.edit')">Profile</DropdownLink>
-                                        <DropdownLink :href="route('orders.index')">Orders</DropdownLink>
-                                        <DropdownLink :href="route('logout')" method="post" as="button">
-                                            Log Out
-                                        </DropdownLink>
-                                    </template>
-                                </Dropdown>
-                            </li>
-                        </ul>
-                    </template>
-                </nav>
+    <template v-else>
+        <ul class="navbar-nav">
+            <li class="nav-item dropdown">
+                <!-- Bootstrap Dropdown -->
+                <button
+                    class="btn btn-link nav-link dropdown-toggle p-0"
+                    type="button"
+                    id="userDropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                >
+                    {{ auth.name }}
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                    <li>
+                        <DropdownLink :href="route('profile.edit')" class="dropdown-item">
+                            Profile
+                        </DropdownLink>
+                    </li>
+                    <li>
+                        <DropdownLink :href="route('orders.index')" class="dropdown-item">
+                            Orders
+                        </DropdownLink>
+                    </li>
+                    <li>
+                        <DropdownLink :href="route('logout')" method="post" as="button" class="dropdown-item">
+                            Log Out
+                        </DropdownLink>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </template>
+</nav>
             </div>
         </header>
 
