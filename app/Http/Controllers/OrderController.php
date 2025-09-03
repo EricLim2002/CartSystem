@@ -19,9 +19,9 @@ class OrderController extends Controller
         }
 
         DB::beginTransaction();
-                    $ordercount = Order::where('user_id',auth()->id())->count();
+        $ordercount = Order::where('user_id', auth()->id())->count() + 1;
 
-            $orderNo = 'SO' . $ordercount;
+        $orderNo = 'SO' . $ordercount;
         try {
             $total = round($cart['total'] ?? 0, 2);
 
@@ -30,10 +30,10 @@ class OrderController extends Controller
                 'total' => $total,
                 'status' => 'pending',
                 'order_no' => $orderNo
-                
+
             ]);
 
-            
+
             foreach ($cart['items'] as $line) {
                 OrderItem::create([
                     'order_id' => $order->id,
@@ -71,31 +71,31 @@ class OrderController extends Controller
         ]);
     }
 
-public function updateStatus(Request $request, Order $order)
-{
-    $request->validate([
-        'status' => 'required|in:completed,cancelled',
-    ]);
+    public function updateStatus(Request $request, Order $order)
+    {
+        $request->validate([
+            'status' => 'required|in:completed,cancelled',
+        ]);
 
-    // Check if order is already final (completed or cancelled)
-    if (in_array($order->status, ['completed', 'cancelled'])) {
+        // Check if order is already final (completed or cancelled)
+        if (in_array($order->status, ['completed', 'cancelled'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order status cannot be changed once it is completed or cancelled.',
+                'status' => $order->status,
+            ], 403);
+        }
+
+        // Update the status
+        $order->update([
+            'status' => $request->status,
+        ]);
+
         return response()->json([
-            'success' => false,
-            'message' => 'Order status cannot be changed once it is completed or cancelled.',
-            'status'  => $order->status,
-        ], 403);
+            'success' => true,
+            'message' => 'Order status updated successfully.',
+            'status' => $order->status,
+        ]);
     }
-
-    // Update the status
-    $order->update([
-        'status' => $request->status,
-    ]);
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Order status updated successfully.',
-        'status'  => $order->status,
-    ]);
-}
 
 }
