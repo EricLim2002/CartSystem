@@ -1,16 +1,31 @@
 import './bootstrap'
 import '../css/app.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import { createApp, h , ref, computed} from 'vue'
-import { createInertiaApp, Link, router, usePage } from '@inertiajs/vue3'
+import { createApp, h, ref } from 'vue'
+import { createInertiaApp, Link } from '@inertiajs/vue3'
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers'
 import GuestLayout from './Layouts/GuestLayout.vue'
 import { Ziggy } from './ziggy'
 export { Ziggy };
 import { ZiggyVue } from 'ziggy-js';
-import {route} from 'ziggy-js'
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel'
+
+// ✅ global cart state
+
+export const cartCount = ref(0);
+
+export const setCartCount = (count) => {
+  cartCount.value = Number(count || 0);
+};
+
+export const incrementCart = (qty = 1) => {
+  cartCount.value = Number(cartCount.value || 0) + Number(qty || 1);
+};
+
+export const deductCart = (qty = 1) => {
+  cartCount.value = Math.max(0, Number(cartCount.value || 0) - Number(qty || 1));
+};
 
 createInertiaApp({
   title: (title) => `${appName}`,
@@ -31,8 +46,11 @@ createInertiaApp({
 
     app.use(plugin)
     app.component('Link', Link)
-
     app.use(ZiggyVue, Ziggy)
+
+    // ✅ make cartCount available globally in all templates
+    app.config.globalProperties.$cartCount = cartCount
+
     app.mount(el)
   },
   progress: {

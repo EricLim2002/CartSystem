@@ -2,7 +2,10 @@
 import axios from "axios";
 import { ref, reactive, computed } from "vue";
 import { usePage } from "@inertiajs/vue3";
-import AlertBox from "@/Components/AlertBox.vue"; 
+import AlertBox from "@/Components/AlertBox.vue";
+
+// only logic change: import setCartCount so header badge stays in sync
+import { setCartCount } from "@/app";
 
 const page = usePage();
 const auth = computed(() => page.props.auth?.user || null);
@@ -39,6 +42,9 @@ const loadCart = async () => {
     cart.value = res.data || { items: {}, count: 0, total: 0 };
     lines.value = Object.values(cart.value.items || {});
     initLocalQty();
+
+    // sync global header/cart count (no UI change)
+    setCartCount(cart.value.count ?? 0);
   } catch (err) {
     handleRequestError(err, "Failed to load cart");
   } finally {
@@ -58,6 +64,10 @@ const updateQty = async (productId) => {
       cart.value = res.data.cart;
       lines.value = Object.values(cart.value.items || {});
       initLocalQty();
+
+      // sync global header/cart count
+      setCartCount(cart.value.count ?? 0);
+
       showAlert("Quantity updated successfully", "success");
     } else {
       throw new Error(res.data?.message || "Update failed");
@@ -78,6 +88,10 @@ const removeItem = async () => {
       cart.value = res.data.cart;
       lines.value = Object.values(cart.value.items || {});
       initLocalQty();
+
+      // sync global header/cart count
+      setCartCount(cart.value.count ?? 0);
+
       showAlert("Item removed from cart", "success");
     } else {
       throw new Error(res.data?.message || "Remove failed");
@@ -98,6 +112,10 @@ const clearCart = async () => {
       cart.value = res.data.cart;
       lines.value = [];
       initLocalQty();
+
+      // sync global header/cart count
+      setCartCount(cart.value.count ?? 0);
+
       showAlert("Cart cleared", "success");
     } else {
       throw new Error(res.data?.message || "Clear failed");
@@ -120,9 +138,14 @@ const checkout = async () => {
     const res = await axios.post("/checkout");
     if (res.data?.id) {
       showAlert("Order placed successfully!", "success");
+
+      // clear local cart and sync global count to zero
       cart.value = { items: {}, count: 0, total: 0 };
       lines.value = [];
       initLocalQty();
+      setCartCount(0);
+
+      // redirect to orders page
       window.location.href = `/orders/`;
     } else {
       throw new Error(res.data?.message || "Checkout failed");
@@ -171,8 +194,10 @@ function closeModal() {
   showModal.value = false;
 }
 
+// initial load
 loadCart();
 </script>
+
 
 <template>
   <div class="cart-page container py-5">

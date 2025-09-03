@@ -5,35 +5,24 @@
       <div class="container d-flex align-items-center justify-content-between py-2">
         <!-- Logo / Brand -->
         <Link :href="route('catalogue')" class="fw-bold fs-5 text-decoration-none text-dark">
-          {{ appName }}
+        {{ appName }}
         </Link>
 
         <!-- Search (only on Catalogue page) -->
-        <form
-          v-if="$page.component === 'Catalogue'"
-          class="d-none d-md-block ms-3 flex-grow-1"
-          @submit.prevent="onSearch"
-        >
-          <input
-            type="search"
-            v-model="q"
-            class="form-control"
-            placeholder="Search products..."
-            aria-label="Search"
-          />
+        <form v-if="$page.component === 'Catalogue'" class="d-none d-md-block ms-3 flex-grow-1 mx-4"
+          @submit.prevent="onSearch">
+          <input type="search" v-model="q" class="form-control" placeholder="Search products..." aria-label="Search" />
         </form>
 
         <!-- Right side -->
         <nav class="d-flex align-items-center gap-3">
           <!-- Cart -->
           <Link :href="route('cart.show')" class="position-relative text-dark fs-5" aria-label="Cart">
-            🛒
-            <span
-              v-if="cartCount > 0"
-              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-            >
-              {{ cartCount }}
-            </span>
+          🛒
+          <span v-if="cartCount > 0"
+            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            {{ cartCount }}
+          </span>
           </Link>
 
           <!-- Auth -->
@@ -45,13 +34,8 @@
           <template v-else>
             <ul class="navbar-nav">
               <li class="nav-item dropdown">
-                <button
-                  class="btn btn-link nav-link dropdown-toggle text-dark"
-                  type="button"
-                  id="userDropdown"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
+                <button class="btn btn-link nav-link dropdown-toggle text-dark" type="button" id="userDropdown"
+                  data-bs-toggle="dropdown" aria-expanded="false">
                   {{ auth.name }}
                 </button>
 
@@ -67,7 +51,8 @@
                     </DropdownLink>
                   </li>
                   <li>
-                    <DropdownLink :href="route('logout')" method="post" as="button" class="dropdown-item">
+                    <DropdownLink :href="route('logout')" method="post" as="button" class="dropdown-item"
+                      @click="onLogoutClick">
                       Log Out
                     </DropdownLink>
                   </li>
@@ -80,44 +65,48 @@
     </header>
 
     <!-- Main content -->
-    <main
-      :class="[
-        'main-content container',
-        $page.component === 'Catalogue'
-          ? 'pt-5 mt-5'
-          : 'd-flex flex-column align-items-center justify-content-center pt-5 mt-5 min-vh-100'
-      ]"
-    >
+    <main :class="[
+      'main-content container',
+      $page.component === 'Catalogue'
+        ? 'pt-5 mt-5'
+        : 'd-flex flex-column align-items-center justify-content-center pt-5 mt-5 min-vh-100'
+    ]">
       <slot />
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
-import { usePage, router } from "@inertiajs/vue3";
-import { route } from "ziggy-js";
-import DropdownLink from "@/Components/DropdownLink.vue";
+import { computed, ref } from 'vue';
+import { usePage, router } from '@inertiajs/vue3';
+import { route } from 'ziggy-js';
+import DropdownLink from '@/Components/DropdownLink.vue';
+
+// import shared reactive ref + helpers from your app entry
+import { cartCount, setCartCount } from '@/app';
 
 const page = usePage();
 
-// Search query
-const q = ref(page.props.query?.q || "");
+// initialize from server-shared props (run once on load)
+setCartCount(page.props.cart?.count ?? 0);
 
-// Props shared from Laravel
-const appName = computed(() => page.props.app?.name ?? "MyShop");
-const cartCount = computed(() => page.props.cart?.count ?? 0);
+// You can use cartCount directly in template (refs unwrap in templates)
+const appName = computed(() => page.props.app?.name ?? 'MyShop');
 const auth = computed(() => page.props.auth?.user ?? null);
+const onLogoutClick = () => {
+  setCartCount(0);
+};
+const q = ref(page.props.query?.q || '');
 
-// Handle search with Inertia router
 function onSearch() {
-  router.get(route("catalogue"), { q: q.value }, { preserveState: true });
+  router.get(route('catalogue'), { q: q.value }, { preserveState: true });
 }
 </script>
 
 <style scoped>
 /* Keep only essentials */
 .main-content {
-  padding-top: 64px; /* prevent content from hiding behind header */
+  padding-top: 64px;
+  /* prevent content from hiding behind header */
 }
 </style>
