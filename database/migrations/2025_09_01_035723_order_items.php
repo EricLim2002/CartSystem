@@ -13,6 +13,7 @@ return new class extends Migration {
             $table->decimal('unit_price', 10, 2);
             $table->integer('quantity');
             $table->decimal('subtotal', 12, 2);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

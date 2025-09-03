@@ -12,6 +12,7 @@ return new class extends Migration {
             $table->decimal('price', 10, 2);
             $table->string('image')->nullable();
             $table->integer('stock')->default(100);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

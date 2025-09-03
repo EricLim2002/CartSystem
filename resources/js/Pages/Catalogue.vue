@@ -6,7 +6,7 @@
 
       <!-- Product grid -->
       <div class="row py-2 col-12">
-        <div v-for="p in products.data" :key="p.id" class="col-md-4">
+        <div v-for="p in products.data" :key="p.id" class="col-md-4 mb-2">
           <div class="card h-100 shadow-sm">
             <img v-if="p.image" :src="p.image" alt="Product Image" class="card-img-top"
               style="height: 9rem; object-fit: cover;" />
@@ -24,7 +24,7 @@
 
       <!-- Pagination -->
     </div>
-    <div class="fixed bottom-0 left-0 w-full bg-white shadow-md" v-if="products.links">
+    <div class="fixed bottom-0 left-0 w-full bg-white shadow-md container" v-if="products.links">
       <nav>
         <ul class="pagination">
           <li v-for="link in products.links" :key="link.label" :class="['page-item', { active: link.active }]">

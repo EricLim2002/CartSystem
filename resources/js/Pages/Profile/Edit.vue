@@ -6,8 +6,12 @@ import UpdateProfileInformationForm from './Partials/UpdateProfileInformationFor
 import { Head } from '@inertiajs/vue3';
 
 defineProps({
-    mustVerifyEmail: Boolean,
-    status: String,
+    mustVerifyEmail: {
+        type: Boolean,
+    },
+    status: {
+        type: String,
+    },
 });
 </script>
 
@@ -15,12 +19,12 @@ defineProps({
   <Head title="Profile" />
 
   <AuthenticatedLayout>
-    <!-- HEADER SLOT -->
     <template #header>
-      <h2 class="h4 fw-semibold mb-0">Profile</h2>
+      <h2 class="h4 fw-semibold mb-0">
+        Profile
+      </h2>
     </template>
 
-    <!-- PAGE CONTENT -->
     <div class="py-4">
       <div class="container">
         <div class="row g-4">

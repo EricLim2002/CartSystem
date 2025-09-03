@@ -7,10 +7,12 @@ return new class extends Migration {
     public function up() {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
+            $table->string('order_no');
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->decimal('total', 12, 2);
             $table->string('status')->default('pending'); // pending, processing, shipped, completed, cancelled
             $table->text('notes')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

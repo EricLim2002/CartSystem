@@ -15,9 +15,7 @@ class MergeSessionCartIntoUser
         // User cart from DB
         $userCart = $user->cart ?? ['items' => [], 'count' => 0, 'total' => 0];
 
-        // Basic merge: quantities add up.
-        // You can copy the method logic from CartController::mergeCarts,
-        // but here we do a simple merge inline:
+
         foreach ($sessionCart['items'] as $id => $line) {
             if (! isset($userCart['items'][$id])) {
                 $userCart['items'][$id] = $line;

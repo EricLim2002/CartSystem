@@ -19,15 +19,21 @@ class OrderController extends Controller
         }
 
         DB::beginTransaction();
+                    $ordercount = Order::where('user_id',auth()->id())->count();
+
+            $orderNo = 'SO' . $ordercount;
         try {
             $total = round($cart['total'] ?? 0, 2);
 
             $order = Order::create([
                 'user_id' => auth()->id(),
                 'total' => $total,
-                'status' => 'pending'
+                'status' => 'pending',
+                'order_no' => $orderNo
+                
             ]);
 
+            
             foreach ($cart['items'] as $line) {
                 OrderItem::create([
                     'order_id' => $order->id,
@@ -38,7 +44,6 @@ class OrderController extends Controller
                     'subtotal' => $line['subtotal'],
                 ]);
 
-                // optional: decrement stock safely if you want
                 if ($product = Product::find($line['product_id'])) {
                     $newStock = max(0, $product->stock - $line['quantity']);
                     $product->update(['stock' => $newStock]);
@@ -47,7 +52,9 @@ class OrderController extends Controller
 
             DB::commit();
             session()->forget('cart');
-
+            $user = auth()->user();
+            $user->cart = null;
+            $user->save();
             return response()->json($order->load('items'), 201);
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -58,24 +65,37 @@ class OrderController extends Controller
     // simple list (for admin or authenticated user)
     public function index(Request $request)
     {
-        // If you want users to see only their orders:
-        // $orders = Order::with('items')->where('user_id', auth()->id())->latest()->paginate(20);
-
-        // For admin view:
         $orders = Order::where('user_id', auth()->id())->with('items')->latest()->paginate(20);
         return Inertia::render('Orders', [
             'orders' => $orders,
         ]);
     }
 
-    public function updateStatus(Request $request, Order $order)
-    {
-        $request->validate(['status' => 'required|in:pending,completed,cancelled']);
-        $order->update(['status' => $request->status]);
-        return response()->json([
-            'success' => true,
-            'status' => $order->status,
-        ]);
+public function updateStatus(Request $request, Order $order)
+{
+    $request->validate([
+        'status' => 'required|in:completed,cancelled',
+    ]);
 
+    // Check if order is already final (completed or cancelled)
+    if (in_array($order->status, ['completed', 'cancelled'])) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Order status cannot be changed once it is completed or cancelled.',
+            'status'  => $order->status,
+        ], 403);
     }
+
+    // Update the status
+    $order->update([
+        'status' => $request->status,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Order status updated successfully.',
+        'status'  => $order->status,
+    ]);
+}
+
 }

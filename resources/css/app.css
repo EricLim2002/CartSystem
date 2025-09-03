@@ -4,3 +4,52 @@
 @import "bootstrap/dist/css/bootstrap.min.css";
 @import "./library/bootstrap/bootstrap.css";
 
+/* Smooth animations */
+* {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Card hover effect */
+.card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+/* Buttons */
+.btn {
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+}
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Status badges */
+.badge {
+  padding: 0.5em 0.75em;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+/* Tables and lists */
+.list-group-item {
+  border: none;
+  padding: 1rem;
+}
+.list-group-item + .list-group-item {
+  border-top: 1px solid #eee;
+}
+
+/* Page container */
+.page-container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
