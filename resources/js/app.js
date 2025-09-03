@@ -13,7 +13,7 @@ import {route} from 'ziggy-js'
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel'
 
 createInertiaApp({
-  title: (title) => `${title} - ${appName}`,
+  title: (title) => `${appName}`,
   resolve: (name) => {
     const page = resolvePageComponent(
       `./Pages/${name}.vue`,

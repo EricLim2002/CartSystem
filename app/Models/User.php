@@ -51,7 +51,7 @@ class User extends Authenticatable
     {
         return Attribute::make(
             get: fn ($cart) => json_decode($cart,true) ?? null,   // accessor
-            set: fn ($cart) => is_string($cart)?$cart:json_encode($cart) // mutator (optional)
+            set: fn ($cart) => is_string($cart)?$cart:json_encode($cart) // mutator
         );
     }
 }

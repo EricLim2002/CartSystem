@@ -2,6 +2,7 @@
 import axios from "axios";
 import { ref, reactive, computed } from "vue";
 import { usePage } from "@inertiajs/vue3";
+import AlertBox from "@/Components/AlertBox.vue"; 
 
 const page = usePage();
 const auth = computed(() => page.props.auth?.user || null);
@@ -14,10 +15,17 @@ const processing = reactive({});
 const processingAll = ref(false);
 const error = ref(null);
 
+const alertRef = ref(null);
+
+// Modal state
+const modalAction = ref(null);   // "remove" | "clear" | "checkout"
+const selectedProductId = ref(null);
+const showModal = ref(false);
+
 const formatMoney = (v) => Number(v || 0).toFixed(2);
 
 const initLocalQty = () => {
-  Object.keys(localQty).forEach((k) => delete localQty[k]); // clear
+  Object.keys(localQty).forEach((k) => delete localQty[k]);
   lines.value.forEach((line) => {
     localQty[line.product_id] = Number(line.quantity || 0);
   });
@@ -41,7 +49,7 @@ const loadCart = async () => {
 const updateQty = async (productId) => {
   const qty = Number(localQty[productId] ?? 0);
   if (!Number.isInteger(qty) || qty < 0) {
-    return alert("Quantity must be a non-negative integer");
+    return showAlert("Quantity must be a non-negative integer", "warning");
   }
   processing[productId] = true;
   try {
@@ -50,6 +58,7 @@ const updateQty = async (productId) => {
       cart.value = res.data.cart;
       lines.value = Object.values(cart.value.items || {});
       initLocalQty();
+      showAlert("Quantity updated successfully", "success");
     } else {
       throw new Error(res.data?.message || "Update failed");
     }
@@ -60,8 +69,8 @@ const updateQty = async (productId) => {
   }
 };
 
-const removeItem = async (productId) => {
-  if (!confirm("Remove this item from cart?")) return;
+const removeItem = async () => {
+  const productId = selectedProductId.value;
   processing[productId] = true;
   try {
     const res = await axios.post("/cart/remove", { product_id: productId });
@@ -69,6 +78,7 @@ const removeItem = async (productId) => {
       cart.value = res.data.cart;
       lines.value = Object.values(cart.value.items || {});
       initLocalQty();
+      showAlert("Item removed from cart", "success");
     } else {
       throw new Error(res.data?.message || "Remove failed");
     }
@@ -76,11 +86,11 @@ const removeItem = async (productId) => {
     handleRequestError(err, "Could not remove item");
   } finally {
     processing[productId] = false;
+    closeModal();
   }
 };
 
 const clearCart = async () => {
-  if (!confirm("Clear entire cart?")) return;
   processingAll.value = true;
   try {
     const res = await axios.post("/cart/clear");
@@ -88,6 +98,7 @@ const clearCart = async () => {
       cart.value = res.data.cart;
       lines.value = [];
       initLocalQty();
+      showAlert("Cart cleared", "success");
     } else {
       throw new Error(res.data?.message || "Clear failed");
     }
@@ -95,24 +106,23 @@ const clearCart = async () => {
     handleRequestError(err, "Could not clear cart");
   } finally {
     processingAll.value = false;
+    closeModal();
   }
 };
 
 const checkout = async () => {
   if (!auth.value) {
-    window.location.href = "/login"; // redirect if not logged in
+    window.location.href = "/login";
     return;
   }
-  if (!confirm("Place order now?")) return;
   processingAll.value = true;
   try {
     const res = await axios.post("/checkout");
     if (res.data?.id) {
-      alert("Order placed: #" + res.data.order_no);
+      showAlert("Order placed successfully!", "success");
       cart.value = { items: {}, count: 0, total: 0 };
       lines.value = [];
       initLocalQty();
-
       window.location.href = `/orders/`;
     } else {
       throw new Error(res.data?.message || "Checkout failed");
@@ -121,6 +131,7 @@ const checkout = async () => {
     handleRequestError(err, "Could not place order");
   } finally {
     processingAll.value = false;
+    closeModal();
   }
 };
 
@@ -133,91 +144,191 @@ const handleRequestError = (err, fallbackMessage) => {
   error.value = fallbackMessage;
   if (err.response) {
     const { status, data } = err.response;
-    if (typeof data === "string" && data.trim().startsWith("<")) {
-      error.value = `${fallbackMessage}. Server returned HTML (likely login redirect). Status: ${status}`;
-      console.log(data.slice(0, 600));
-      return;
-    }
     if (data?.message) {
       error.value = data.message;
-      return;
+    } else {
+      error.value = `${fallbackMessage}. Status: ${status}`;
     }
-    error.value = `${fallbackMessage}. Status: ${status}`;
   } else {
     error.value = err.message || fallbackMessage;
   }
+  showAlert(error.value, "danger");
 };
+
+function showAlert(msg, variant = "info") {
+  alertRef.value?.show(msg, variant);
+}
+
+// Modal helpers
+function openModal(action, productId = null) {
+  modalAction.value = action;
+  selectedProductId.value = productId;
+  showModal.value = true;
+}
+function closeModal() {
+  modalAction.value = null;
+  selectedProductId.value = null;
+  showModal.value = false;
+}
 
 loadCart();
 </script>
 
 <template>
-  <div class="cart-page container py-6">
-    <h1 class="mb-4">Your cart</h1>
+  <div class="cart-page container py-5">
+    <h1 class="mb-4 fw-bold">🛒 Your Cart</h1>
 
-    <div v-if="loading" class="text-muted">Loading cart…</div>
+    <!-- Loading -->
+    <div v-if="loading" class="text-center text-muted my-5">
+      <div class="spinner-border text-primary mb-2"></div>
+      <div>Loading your cart…</div>
+    </div>
 
+    <!-- Cart content -->
     <div v-else>
-      <div v-if="lines.length === 0" class="alert alert-info">
-        Cart is empty
+      <div v-if="lines.length === 0" class="alert alert-info text-center py-4 shadow-sm">
+        <strong>Your cart is empty.</strong>  
+        <div class="mt-2">
+          <button class="btn btn-primary btn-sm" @click="continueShopping">Start Shopping</button>
+        </div>
       </div>
 
-      <div v-else>
-        <div v-for="line in lines" :key="line.product_id" class="d-flex align-items-center justify-content-between py-2 border-bottom">
-          <div>
-            <div class="fw-semibold">{{ line.name }}</div>
-            <div class="small text-muted">ID: {{ line.product_id }}</div>
-            <div class="small text-muted">Unit: RM {{ formatMoney(line.unit_price) }}</div>
-          </div>
+      <div v-else class="row g-3">
+        <!-- Cart items -->
+        <div class="col-lg-8">
+          <div v-for="line in lines" :key="line.product_id" class="card shadow-sm border-0 mb-3">
+            <div class="card-body d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="fw-semibold mb-1">{{ line.name }}</h6>
+                <div class="small text-muted">ID: {{ line.product_id }}</div>
+                <div class="small text-muted">Unit: RM {{ formatMoney(line.unit_price) }}</div>
+              </div>
 
-          <div class="d-flex align-items-center gap-2">
-            <input type="number" min="0" class="form-control" style="width:96px"
-                   v-model.number="localQty[line.product_id]" />
+              <div class="d-flex align-items-center gap-2">
+                <input type="number" min="0" class="form-control form-control-sm text-center"
+                       style="width:80px" v-model.number="localQty[line.product_id]" />
 
-            <button class="btn btn-sm btn-secondary" :disabled="processing[line.product_id]" @click="updateQty(line.product_id)">
-              <span v-if="processing[line.product_id]">…</span>
-              <span v-else>Update</span>
-            </button>
+                <button class="btn btn-sm btn-outline-secondary"
+                        :disabled="processing[line.product_id]"
+                        @click="updateQty(line.product_id)">
+                  <span v-if="processing[line.product_id]" class="spinner-border spinner-border-sm"></span>
+                  <span v-else>Update</span>
+                </button>
 
-            <div class="ms-3">RM {{ formatMoney(line.subtotal) }}</div>
+                <div class="ms-3 fw-semibold">RM {{ formatMoney(line.subtotal) }}</div>
 
-            <button class="btn btn-sm btn-outline-danger ms-3" :disabled="processing[line.product_id]" @click="removeItem(line.product_id)">
-              Remove
-            </button>
+                <button class="btn btn-sm btn-outline-danger ms-3"
+                        :disabled="processing[line.product_id]"
+                        @click="openModal('remove', line.product_id)">
+                  <i class="bi bi-trash"></i> Remove
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="d-flex justify-content-between align-items-center mt-4">
-          <div>
-            <button class="btn btn-outline-danger" @click="clearCart" :disabled="processingAll">Clear Cart</button>
-            <button class="btn btn-light ms-2" @click="continueShopping">Continue shopping</button>
-          </div>
+        <!-- Cart summary -->
+        <div class="col-lg-4">
+          <div class="card shadow-sm border-0">
+            <div class="card-body">
+              <h5 class="fw-bold mb-3">Summary</h5>
+              <div class="d-flex justify-content-between small mb-1">
+                <span>Items</span>
+                <span>{{ cart.count }}</span>
+              </div>
+              <div class="d-flex justify-content-between fs-5 fw-semibold border-top pt-2">
+                <span>Total</span>
+                <span>RM {{ formatMoney(cart.total) }}</span>
+              </div>
 
-          <div class="text-end">
-            <div class="small text-muted">Items: {{ cart.count }}</div>
-            <div class="fs-5 fw-semibold">Total: RM {{ formatMoney(cart.total) }}</div>
-            <div class="mt-2">
-              <button v-if="auth" class="btn btn-primary"
-                      @click="checkout"
-                      :disabled="lines.length===0 || processingAll">
-                Checkout
-              </button>
+              <div class="mt-4 d-grid gap-2">
+                <button v-if="auth"
+                        class="btn btn-primary btn-lg"
+                        @click="openModal('checkout')"
+                        :disabled="lines.length===0 || processingAll">
+                  Checkout
+                </button>
 
-              <a v-else href="/login" class="btn btn-outline-primary">
-                Login to checkout
-              </a>
+                <a v-else href="/login" class="btn btn-outline-primary btn-lg">
+                  Login to Checkout
+                </a>
+
+                <button class="btn btn-outline-danger"
+                        @click="openModal('clear')"
+                        :disabled="processingAll">
+                  Clear Cart
+                </button>
+
+                <button class="btn btn-light" @click="continueShopping">
+                  Continue Shopping
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div v-if="error" class="mt-3 alert alert-danger">
-      {{ error }}
+    <!-- AlertBox -->
+    <AlertBox ref="alertRef" v-if="error" :message="error" variant="danger" class="mt-4 shadow-sm" />
+
+    <!-- Bootstrap Modal -->
+    <div class="modal fade" :class="{ show: showModal }" style="display: block;" v-if="showModal">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <span v-if="modalAction==='remove'">Remove Item</span>
+              <span v-else-if="modalAction==='clear'">Clear Cart</span>
+              <span v-else-if="modalAction==='checkout'">Confirm Checkout</span>
+            </h5>
+            <button type="button" class="btn-close" @click="closeModal"></button>
+          </div>
+          <div class="modal-body">
+            <p v-if="modalAction==='remove'">Are you sure you want to remove this item?</p>
+            <p v-else-if="modalAction==='clear'">Are you sure you want to clear your entire cart?</p>
+            <p v-else-if="modalAction==='checkout'">Are you sure you want to place this order?</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="closeModal">Cancel</button>
+            <button v-if="modalAction==='remove'" class="btn btn-danger" @click="removeItem">Remove</button>
+            <button v-if="modalAction==='clear'" class="btn btn-danger" @click="clearCart">Clear</button>
+            <button v-if="modalAction==='checkout'" class="btn btn-primary" @click="checkout">Checkout</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.cart-page .border-bottom { border-bottom: 1px solid #eee; }
+.cart-page h1 {
+  font-size: 1.75rem;
+}
+
+.card {
+  transition: all 0.2s ease-in-out;
+  border-radius: 0.75rem;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0.5rem 1rem rgba(0,0,0,.1);
+}
+
+.btn {
+  transition: all 0.2s ease-in-out;
+}
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+input[type="number"] {
+  border-radius: 0.5rem;
+}
+
+/* Modal fix for manual show */
+.modal.show {
+  display: block;
+  background: rgba(0,0,0,.5);
+}
 </style>

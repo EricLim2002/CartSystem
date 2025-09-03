@@ -1,89 +1,103 @@
 <template>
-    <div class="layout-wrapper">
-        <!-- Header -->
-        <header class="fixed-header" role="banner">
-            <div class="container">
-                <!-- Logo / Brand -->
-                <Link :href="route('catalogue')" class="brand">
-                    {{ appName }}
-                </Link>
+  <div class="layout-wrapper">
+    <!-- Header -->
+    <header class="fixed-top bg-white border-bottom shadow-sm" role="banner">
+      <div class="container d-flex align-items-center justify-content-between py-2">
+        <!-- Logo / Brand -->
+        <Link :href="route('catalogue')" class="fw-bold fs-5 text-decoration-none text-dark">
+          {{ appName }}
+        </Link>
 
-                <!-- Search (only on Catalogue page) -->
-                <form v-if="$page.component === 'Catalogue'" class="search" @submit.prevent="onSearch">
-                    <input type="search" v-model="q" placeholder="Search products..." aria-label="Search" />
-                </form>
-                
-                  <slot v-if="$page.component !== 'Catalogue'" name="header" />
+        <!-- Search (only on Catalogue page) -->
+        <form
+          v-if="$page.component === 'Catalogue'"
+          class="d-none d-md-block ms-3 flex-grow-1"
+          @submit.prevent="onSearch"
+        >
+          <input
+            type="search"
+            v-model="q"
+            class="form-control"
+            placeholder="Search products..."
+            aria-label="Search"
+          />
+        </form>
 
-                <!-- Right side -->
-<nav class="right">
-    <!-- Cart -->
-    <Link :href="route('cart.show')" class="cart" aria-label="Cart">
-        🛒
-        <span v-if="cartCount > 0" class="badge bg-danger">{{ cartCount }}</span>
-    </Link>
+        <!-- Right side -->
+        <nav class="d-flex align-items-center gap-3">
+          <!-- Cart -->
+          <Link :href="route('cart.show')" class="position-relative text-dark fs-5" aria-label="Cart">
+            🛒
+            <span
+              v-if="cartCount > 0"
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+            >
+              {{ cartCount }}
+            </span>
+          </Link>
 
-    <!-- Auth -->
-    <template v-if="!auth">
-        <Link :href="route('login')" class="btn btn-link">Login</Link>
-        <Link :href="route('register')" class="btn btn-link">Register</Link>
-    </template>
+          <!-- Auth -->
+          <template v-if="!auth">
+            <Link :href="route('login')" class="btn btn-outline-primary btn-sm">Login</Link>
+            <Link :href="route('register')" class="btn btn-primary btn-sm">Register</Link>
+          </template>
 
-    <template v-else>
-        <ul class="navbar-nav">
-            <li class="nav-item dropdown">
-                <!-- Bootstrap Dropdown -->
+          <template v-else>
+            <ul class="navbar-nav">
+              <li class="nav-item dropdown">
                 <button
-                    class="btn btn-link nav-link dropdown-toggle p-0"
-                    type="button"
-                    id="userDropdown"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
+                  class="btn btn-link nav-link dropdown-toggle text-dark"
+                  type="button"
+                  id="userDropdown"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
                 >
-                    {{ auth.name }}
+                  {{ auth.name }}
                 </button>
 
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                    <li>
-                        <DropdownLink :href="route('profile.edit')" class="dropdown-item">
-                            Profile
-                        </DropdownLink>
-                    </li>
-                    <li>
-                        <DropdownLink :href="route('orders.index')" class="dropdown-item">
-                            Orders
-                        </DropdownLink>
-                    </li>
-                    <li>
-                        <DropdownLink :href="route('logout')" method="post" as="button" class="dropdown-item">
-                            Log Out
-                        </DropdownLink>
-                    </li>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown">
+                  <li>
+                    <DropdownLink :href="route('profile.edit')" class="dropdown-item">
+                      Profile
+                    </DropdownLink>
+                  </li>
+                  <li>
+                    <DropdownLink :href="route('orders.index')" class="dropdown-item">
+                      Orders
+                    </DropdownLink>
+                  </li>
+                  <li>
+                    <DropdownLink :href="route('logout')" method="post" as="button" class="dropdown-item">
+                      Log Out
+                    </DropdownLink>
+                  </li>
                 </ul>
-            </li>
-        </ul>
-    </template>
-</nav>
-            </div>
-        </header>
+              </li>
+            </ul>
+          </template>
+        </nav>
+      </div>
+    </header>
 
-        <!-- Main content -->
-        <main
-            :class="$page.component === 'Catalogue'
-                ? 'p-4 pt-20 main-content d-flex flex-column min-vh-100 mt-5' 
-                : 'main-content pt-20 align-items-center justify-content-center d-flex flex-column min-vh-100'"
-        >
-            <slot />
-        </main>
-    </div>
+    <!-- Main content -->
+    <main
+      :class="[
+        'main-content container',
+        $page.component === 'Catalogue'
+          ? 'pt-5 mt-5'
+          : 'd-flex flex-column align-items-center justify-content-center pt-5 mt-5 min-vh-100'
+      ]"
+    >
+      <slot />
+    </main>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed } from "vue";
 import { usePage, router } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
-import Dropdown from '@/Components/Dropdown.vue';
-import DropdownLink from '@/Components/DropdownLink.vue';
+import DropdownLink from "@/Components/DropdownLink.vue";
 
 const page = usePage();
 
@@ -97,77 +111,13 @@ const auth = computed(() => page.props.auth?.user ?? null);
 
 // Handle search with Inertia router
 function onSearch() {
-    router.get(route("catalogue"), { q: q.value }, { preserveState: true });
+  router.get(route("catalogue"), { q: q.value }, { preserveState: true });
 }
 </script>
 
 <style scoped>
-.fixed-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 64px;
-    background: #fff;
-    border-bottom: 1px solid #eee;
-    z-index: 1000;
-}
-
-.container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 16px;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.brand {
-    font-weight: 700;
-    text-decoration: none;
-    color: #111;
-}
-
-.search input {
-    padding: 6px 8px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-}
-
-.right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.badge {
-    display: inline-block;
-    background: #ef4444;
-    color: #fff;
-    border-radius: 999px;
-    padding: 2px 6px;
-    font-size: 12px;
-    margin-left: 6px;
-}
-
-/* Main content padding to avoid being hidden behind fixed header */
+/* Keep only essentials */
 .main-content {
-    padding-top: 64px;
-}
-.nav-item.dropdown {
-  position: relative; /* anchor point for absolute dropdown */
-}
-
-.nav-item.dropdown .dropdown-panel {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  min-width: 160px;
-  border-radius: 8px;
-  border: 1px solid #e6e6e6;
-  background: #fff;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
-  z-index:3000;
+  padding-top: 64px; /* prevent content from hiding behind header */
 }
 </style>
