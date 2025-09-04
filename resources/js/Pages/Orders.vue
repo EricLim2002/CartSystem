@@ -97,12 +97,12 @@ const updateStatus = async (orderId) => {
               <tbody>
                 <tr v-for="product in order.items" :key="product.id">
                   <td><strong>{{ product.product_name }}</strong></td>
-                  <td class="text-center">{{ product.pivot?.quantity ?? 1 }}</td>
+                  <td class="text-center">{{ product.quantity ?? 1 }}</td>
                   <td class="text-end">RM {{ Number(product.unit_price).toFixed(2) }}</td>
                   <td class="text-end fw-bold">
                     RM {{
                       product.subtotal ??
-                      (product.unit_price * (product.pivot?.quantity ?? 1)).toFixed(2)
+                      (product.unit_price * (product.quantity ?? 1)).toFixed(2)
                     }}
                   </td>
                 </tr>
